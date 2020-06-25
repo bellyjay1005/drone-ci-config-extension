@@ -1,0 +1,4 @@
+---
+kind: secret
+name: key
+data: YXNkZgo=

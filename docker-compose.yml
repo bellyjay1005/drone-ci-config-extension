@@ -1,0 +1,71 @@
+version: "2"
+
+services:
+  drone:
+    image: drone/drone:1.2
+    environment:
+      - DRONE_GITEA_SERVER=http://gitserver:3000
+      - DRONE_GIT_ALWAYS_AUTH=false
+      - DRONE_RUNNER_CAPACITY=2
+      - DRONE_SERVER_HOST=drone:80
+      - DRONE_SERVER_PROTO=http
+      - DRONE_TLS_AUTOCERT=false
+      - DRONE_YAML_ENDPOINT=http://ext:3000
+      - DRONE_YAML_SECRET=b4cd6b99e3923547264047d89e5e7583
+      - DRONE_RUNNER_NETWORKS=aws-config-check-extension_default
+      - DRONE_USER_CREATE=username:admin,machine:true,admin:true,token:8447a1fac4fad89c62ae46621ee854a1
+    restart: always
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - gitserver
+      - ext
+    ports:
+      - "8888:80"
+      - "443:443"
+
+  gitserver:
+    image: gitea/gitea:latest
+    environment:
+      - USER_UID=1000
+      - USER_GID=1000
+      - DB_TYPE=mysql
+      - DB_HOST=db:3306
+      - DB_NAME=gitea
+      - DB_USER=gitea
+      - DB_PASSWD=gitea
+      - ROOT_URL=http://gitserver:3000/
+    restart: always
+    volumes:
+      - ./gitea:/data
+    ports:
+      - "3000:3000"
+      - "222:22"
+    depends_on:
+      - db
+
+  db:
+    image: mysql:5.7
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD=gitea
+      - MYSQL_USER=gitea
+      - MYSQL_PASSWORD=gitea
+      - MYSQL_DATABASE=gitea
+    volumes:
+      - ./mysql:/var/lib/mysql
+
+  ext:
+    image: strithoncloud/aws-config-check-extension
+    restart: always
+    environment:
+      - PLUGIN_DEBUG=true
+      - PLUGIN_SECRET=b4cd6b99e3923547264047d89e5e7583
+      - GITHUB_TOKEN=f2f0677e4260d2914b1bf1d711fe1412b9e0fafe
+      - GITHUB_SERVER=http://gitserver:3000/api/v1
+      - DRONE_TOKEN=8447a1fac4fad89c62ae46621ee854a1
+      - DRONE_HOST=http://drone:80
+    ports:
+      - "5000:3000"
+    depends_on:
+      - gitserver

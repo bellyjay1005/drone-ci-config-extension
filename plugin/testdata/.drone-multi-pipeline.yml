@@ -1,0 +1,557 @@
+---
+version: ""
+kind: pipeline
+type: ""
+name: deploy-qa
+clone:
+  disable: false
+  depth: 0
+  skip_verify: false
+concurrency:
+  limit: 0
+depends_on: []
+node: {}
+platform:
+  os: ""
+  arch: ""
+  variant: ""
+  version: ""
+image_pull_secrets: []
+services: []
+steps:
+- build: null
+  command: []
+  commands:
+  - pip install jinja2 gitpython
+  - python add_greengrass_spec.py
+  detach: false
+  depends_on:
+  - clone
+  devices: []
+  dns: []
+  dns_search: []
+  entrypoint: []
+  environment:
+    DEMO_API_TOKEN:
+      from_secret: DEMO_API_TOKEN
+  extra_hosts: []
+  failure: ""
+  image: base/python:alpine
+  network_mode: ""
+  name: render-custom-spec
+  ports: []
+  privileged: false
+  pull: ""
+  push: null
+  resources: null
+  settings: {}
+  shell: ""
+  user: ""
+  volumes: []
+  when:
+    action: {}
+    cron: {}
+    ref: {}
+    repo: {}
+    instance: {}
+    target: {}
+    event: {}
+    branch: {}
+    status: {}
+    paths: {}
+    matrix: {}
+  working_dir: ""
+- build: null
+  command: []
+  commands: []
+  detach: false
+  depends_on:
+  - clone
+  devices: []
+  dns: []
+  dns_search: []
+  entrypoint: []
+  environment:
+    ARTIFACT_NAME: kiosk-setup-deployment.zip
+    DEMO_API_TOKEN:
+      from_secret: DEMO_API_TOKEN
+    LAMBDA_CODE_DIR: src/setup
+  extra_hosts: []
+  failure: ""
+  image: strithoncloud/lambda-packager:python-3.6
+  network_mode: ""
+  name: build-setup-lambda-zip
+  ports: []
+  privileged: false
+  pull: ""
+  push: null
+  resources: null
+  settings: {}
+  shell: ""
+  user: ""
+  volumes: []
+  when:
+    action: {}
+    cron: {}
+    ref: {}
+    repo: {}
+    instance: {}
+    target: {}
+    event: {}
+    branch: {}
+    status: {}
+    paths: {}
+    matrix: {}
+  working_dir: ""
+- build: null
+  command: []
+  commands: []
+  detach: false
+  depends_on:
+  - clone
+  devices: []
+  dns: []
+  dns_search: []
+  entrypoint: []
+  environment:
+    ARTIFACT_NAME: kiosk-metrics-deployment.zip
+    DEMO_API_TOKEN:
+      from_secret: DEMO_API_TOKEN
+    LAMBDA_CODE_DIR: src/metrics
+  extra_hosts: []
+  failure: ""
+  image: strithoncloud/lambda-packager:python-3.6
+  network_mode: ""
+  name: build-metrics-lambda-zip
+  ports: []
+  privileged: false
+  pull: ""
+  push: null
+  resources: null
+  settings: {}
+  shell: ""
+  user: ""
+  volumes: []
+  when:
+    action: {}
+    cron: {}
+    ref: {}
+    repo: {}
+    instance: {}
+    target: {}
+    event: {}
+    branch: {}
+    status: {}
+    paths: {}
+    matrix: {}
+  working_dir: ""
+- build: null
+  command: []
+  commands: []
+  detach: false
+  depends_on:
+  - render-custom-spec
+  - build-setup-lambda-zip
+  - build-metrics-lambda-zip
+  devices: []
+  dns: []
+  dns_search: []
+  entrypoint: []
+  environment:
+    AWS_DEFAULT_REGION: us-east-1
+    ENVIRON: qa
+    DEMO_API_TOKEN:
+      from_secret: DEMO_API_TOKEN
+  extra_hosts: []
+  failure: ""
+  image: plugins/aws-cloudformation:alpha
+  network_mode: ""
+  name: deploy-cloud-stack
+  ports: []
+  privileged: false
+  pull: ""
+  push: null
+  resources: null
+  settings: {}
+  shell: ""
+  user: ""
+  volumes: []
+  when:
+    action: {}
+    cron: {}
+    ref: {}
+    repo: {}
+    instance: {}
+    target: {}
+    event: {}
+    branch: {}
+    status: {}
+    paths: {}
+    matrix: {}
+  working_dir: ""
+- build: null
+  command: []
+  commands: []
+  detach: false
+  depends_on:
+  - deploy-cloud-stack
+  devices: []
+  dns: []
+  dns_search: []
+  entrypoint: []
+  environment:
+    AWS_DEFAULT_REGION: us-east-1
+    ENVIRON: qa
+    DEMO_API_TOKEN:
+      from_secret: DEMO_API_TOKEN
+  extra_hosts: []
+  failure: ""
+  image: plugins/aws-greengrass-cloudformation:alpha
+  network_mode: ""
+  name: deploy-greengrass-group
+  ports: []
+  privileged: false
+  pull: ""
+  push: null
+  resources: null
+  settings: {}
+  shell: ""
+  user: ""
+  volumes: []
+  when:
+    action: {}
+    cron: {}
+    ref: {}
+    repo: {}
+    instance: {}
+    target: {}
+    event: {}
+    branch: {}
+    status: {}
+    paths: {}
+    matrix: {}
+  working_dir: ""
+trigger:
+  action: {}
+  cron: {}
+  ref: {}
+  repo: {}
+  instance: {}
+  target: {}
+  event:
+    include:
+    - push
+  branch: {}
+  status: {}
+  paths: {}
+  matrix: {}
+volumes: []
+workspace:
+  base: ""
+  path: ""
+---
+version: ""
+kind: pipeline
+type: ""
+name: deploy-pr
+clone:
+  disable: false
+  depth: 0
+  skip_verify: false
+concurrency:
+  limit: 0
+depends_on: []
+node: {}
+platform:
+  os: ""
+  arch: ""
+  variant: ""
+  version: ""
+image_pull_secrets: []
+services: []
+steps:
+- build: null
+  command: []
+  commands:
+  - pip install jinja2 gitpython
+  - python add_greengrass_spec.py
+  detach: false
+  depends_on:
+  - clone
+  devices: []
+  dns: []
+  dns_search: []
+  entrypoint: []
+  environment:
+    DEMO_API_TOKEN:
+      from_secret: DEMO_API_TOKEN
+  extra_hosts: []
+  failure: ""
+  image: base/python:alpine
+  network_mode: ""
+  name: render-custom-spec
+  ports: []
+  privileged: false
+  pull: ""
+  push: null
+  resources: null
+  settings: {}
+  shell: ""
+  user: ""
+  volumes: []
+  when:
+    action: {}
+    cron: {}
+    ref: {}
+    repo: {}
+    instance: {}
+    target: {}
+    event: {}
+    branch: {}
+    status: {}
+    paths: {}
+    matrix: {}
+  working_dir: ""
+- build: null
+  command: []
+  commands: []
+  detach: false
+  depends_on:
+  - clone
+  devices: []
+  dns: []
+  dns_search: []
+  entrypoint: []
+  environment:
+    ARTIFACT_NAME: kiosk-setup-deployment.zip
+    DEMO_API_TOKEN:
+      from_secret: DEMO_API_TOKEN
+    LAMBDA_CODE_DIR: src/setup
+  extra_hosts: []
+  failure: ""
+  image: strithoncloud/lambda-packager:python-3.6
+  network_mode: ""
+  name: build-setup-lambda-zip
+  ports: []
+  privileged: false
+  pull: ""
+  push: null
+  resources: null
+  settings: {}
+  shell: ""
+  user: ""
+  volumes: []
+  when:
+    action: {}
+    cron: {}
+    ref: {}
+    repo: {}
+    instance: {}
+    target: {}
+    event: {}
+    branch: {}
+    status: {}
+    paths: {}
+    matrix: {}
+  working_dir: ""
+- build: null
+  command: []
+  commands: []
+  detach: false
+  depends_on:
+  - clone
+  devices: []
+  dns: []
+  dns_search: []
+  entrypoint: []
+  environment:
+    ARTIFACT_NAME: kiosk-metrics-deployment.zip
+    DEMO_API_TOKEN:
+      from_secret: DEMO_API_TOKEN
+    LAMBDA_CODE_DIR: src/metrics
+  extra_hosts: []
+  failure: ""
+  image: strithoncloud/lambda-packager:python-3.6
+  network_mode: ""
+  name: build-metrics-lambda-zip
+  ports: []
+  privileged: false
+  pull: ""
+  push: null
+  resources: null
+  settings: {}
+  shell: ""
+  user: ""
+  volumes: []
+  when:
+    action: {}
+    cron: {}
+    ref: {}
+    repo: {}
+    instance: {}
+    target: {}
+    event: {}
+    branch: {}
+    status: {}
+    paths: {}
+    matrix: {}
+  working_dir: ""
+- build: null
+  command: []
+  commands: []
+  detach: false
+  depends_on:
+  - clone
+  devices: []
+  dns: []
+  dns_search: []
+  entrypoint: []
+  environment:
+    API_KEY:
+      from_secret: whitesource_api_key
+    DEMO_API_TOKEN:
+      from_secret: DEMO_API_TOKEN
+  extra_hosts: []
+  failure: ""
+  image: plugins/whitesource:alpha
+  network_mode: ""
+  name: whitesource
+  ports: []
+  privileged: false
+  pull: ""
+  push: null
+  resources: null
+  settings: {}
+  shell: ""
+  user: ""
+  volumes: []
+  when:
+    action: {}
+    cron: {}
+    ref: {}
+    repo: {}
+    instance: {}
+    target: {}
+    event: {}
+    branch: {}
+    status: {}
+    paths: {}
+    matrix: {}
+  working_dir: ""
+- build: null
+  command: []
+  commands: []
+  detach: false
+  depends_on:
+  - render-custom-spec
+  - build-setup-lambda-zip
+  - build-metrics-lambda-zip
+  - whitesource
+  devices: []
+  dns: []
+  dns_search: []
+  entrypoint: []
+  environment:
+    AWS_DEFAULT_REGION: us-east-1
+    ENVIRON: pr
+    DEMO_API_TOKEN:
+      from_secret: DEMO_API_TOKEN
+  extra_hosts: []
+  failure: ""
+  image: plugins/aws-cloudformation:alpha
+  network_mode: ""
+  name: deploy-cloud-stack
+  ports: []
+  privileged: false
+  pull: ""
+  push: null
+  resources: null
+  settings: {}
+  shell: ""
+  user: ""
+  volumes: []
+  when:
+    action: {}
+    cron: {}
+    ref: {}
+    repo: {}
+    instance: {}
+    target: {}
+    event: {}
+    branch: {}
+    status: {}
+    paths: {}
+    matrix: {}
+  working_dir: ""
+- build: null
+  command: []
+  commands: []
+  detach: false
+  depends_on:
+  - deploy-cloud-stack
+  devices: []
+  dns: []
+  dns_search: []
+  entrypoint: []
+  environment:
+    AWS_DEFAULT_REGION: us-east-1
+    ENVIRON: pr
+    DEMO_API_TOKEN:
+      from_secret: DEMO_API_TOKEN
+  extra_hosts: []
+  failure: ""
+  image: plugins/aws-greengrass-cloudformation:alpha
+  network_mode: ""
+  name: deploy-greengrass-group
+  ports: []
+  privileged: false
+  pull: ""
+  push: null
+  resources: null
+  settings: {}
+  shell: ""
+  user: ""
+  volumes: []
+  when:
+    action: {}
+    cron: {}
+    ref: {}
+    repo: {}
+    instance: {}
+    target: {}
+    event: {}
+    branch: {}
+    status: {}
+    paths: {}
+    matrix: {}
+  working_dir: ""
+trigger:
+  action: {}
+  cron: {}
+  ref: {}
+  repo: {}
+  instance: {}
+  target: {}
+  event:
+    include:
+    - push
+  branch:
+    include:
+    - master
+  status: {}
+  paths: {}
+  matrix: {}
+volumes: []
+workspace:
+  base: ""
+  path: ""
+---
+version: ""
+kind: secret
+type: ""
+name: DEMO_API_TOKEN
+data: YXNkZgo=
+get:
+  path: ""
+  name: ""
+  key: ""

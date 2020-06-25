@@ -1,0 +1,37 @@
+---
+kind: pipeline
+name: deploy-qa
+steps:
+  - name: render-custom-spec
+    image: base/python:alpine
+    commands:
+      - pip install jinja2 gitpython
+      - python add_greengrass_spec.py
+    depends_on: [clone]
+
+  - name: build-setup-lambda-zip
+    image: strithoncloud/lambda-packager:python-3.6
+    environment:
+      LAMBDA_CODE_DIR: src/setup
+      ARTIFACT_NAME: kiosk-setup-deployment.zip
+    depends_on: [clone]
+
+  - name: deploy-cloud-stack
+    image: plugins/aws-cloudformation:alpha
+    environment:
+      AWS_DEFAULT_REGION: us-east-1
+      ENVIRON: qa
+    depends_on:
+      - render-custom-spec
+      - build-setup-lambda-zip
+      - build-metrics-lambda-zip
+
+  - name: deploy-greengrass-group
+    image: plugins/aws-greengrass-cloudformation:alpha
+    environment:
+      AWS_DEFAULT_REGION: us-east-1
+      ENVIRON: qa
+    depends_on: [deploy-cloud-stack]
+
+trigger:
+  event: [push]

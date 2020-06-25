@@ -1,0 +1,134 @@
+Parameters:
+  Owner:
+    Type: String
+  Version:
+    Type: String
+  Environment:
+    Type: String
+  Product:
+    Type: String
+  Team:
+    Type: String
+  Unit:
+    Type: String
+Conditions:
+  IsProd:
+    !Equals [ !Ref Environment, pr ]
+Resources:
+  CheckerExtension:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub ${Environment}-ConfigCheckExtension
+      Runtime: go1.x
+      Code:
+        S3Bucket:
+          Fn::ImportValue: pr-crsl-baseline:BucketArtifactStore
+        S3Key: !Sub ${Environment}/${Product}/${Version}/deployment.zip
+      Environment:
+        Variables:
+          ENV: !Sub ${Environment}
+          REGION: us-east-1
+          GITHUB_ENT_TOKEN_LOC: /github/oauth_token
+          GITHUB_PUB_TOKEN_LOC: /github/public/oauth_token
+          API_ENDPOINT_QA:
+            Fn::ImportValue: qa-event-api-appsync:GraphQLApiEndpoint
+          API_ENDPOINT:
+            Fn::ImportValue: pr-event-api-appsync:GraphQLApiEndpoint
+          LOGLEVEL: !If [IsProd, 'INFO', 'DEBUG']
+      Handler: main
+      Role: !GetAtt CheckerExtensionLambdaRole.Arn
+      VpcConfig:
+        SecurityGroupIds:
+          - Fn::ImportValue: !Sub ${Environment}-drone-demo-datacenter-long-lived:ALBGroupId
+          - Fn::ImportValue: !Sub ${Environment}-drone-demo-datacenter-long-lived:ServerGroupId
+        SubnetIds:
+          - Fn::ImportValue: !Sub ${Environment}-demo-datacenter-vpc:BackendSubnetA
+      Timeout: 30
+
+  ALBLambdaPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt CheckerExtension.Arn
+      Principal: elasticloadbalancing.amazonaws.com
+
+  ExternalALBListenerRule:
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    Properties:
+      Actions:
+        - Order: 1
+          TargetGroupArn: !Ref 'ExternalALBTargetGroup'
+          Type: forward
+      Conditions:
+        - Field: path-pattern
+          Values:
+            - /extension
+      ListenerArn:
+        Fn::ImportValue: !Sub ${Environment}-drone-demo-datacenter-server:ExternalALBListenerArn
+      Priority: 20
+
+  ExternalALBTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      TargetType: lambda
+      Targets:
+        - 
+          Id: !GetAtt CheckerExtension.Arn
+    DependsOn:
+      - ALBLambdaPermission
+
+  CheckerExtensionLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Action: sts:AssumeRole
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaRole
+
+  LambdaRolePolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      Description: Allow the metrics lambda to get parameters, decrypt them, and log
+      ManagedPolicyName: !Sub ${Environment}-ConfigCheckLambdaSSM
+      Path: /
+      Roles:
+        - !Ref CheckerExtensionLambdaRole
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          -
+            Effect: Allow
+            Action:
+              - logs:CreateLogGroup
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+            Resource: arn:aws:logs:*:*:*
+          -
+            Effect: Allow
+            Action:
+              - ec2:CreateNetworkInterface
+              - ec2:DescribeNetworkInterfaces
+              - ec2:DeleteNetworkInterface
+            Resource: '*'
+          -
+            Effect: Allow
+            Action:
+              - ssm:GetParameter
+              - ssm:GetParametersByPath
+            Resource:
+              - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/github/*
+              - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${Environment}/drone-demo/*
+              - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/pr/auth0/*
+              - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/qa/auth0/*
+          -
+            Effect: Allow
+            Action:
+              - kms:Decrypt
+            Resource:
+              - !ImportValue qa-bb-master-bucket-keys:KMSKey
+              - Fn::ImportValue: !Sub ${Environment}-drone-demo-datacenter-long-lived:KeyArn

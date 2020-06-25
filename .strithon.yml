@@ -1,0 +1,35 @@
+
+---
+kind: service
+metadata:
+  service:
+    id: 22a1b08d-a330-443c-acfb-f7b55c6a7ac0
+    name: aws-config-check-extension
+    team: sarahconnor
+    unit: crsl
+    owners:
+      - admin@strithon.com
+    ms_team:
+      name: BlackBird
+      channel: custodian
+    description: >
+      plugin that checks to make sure committer and repo can push to the pipeline
+  environments:
+    - name: qa
+      cloud: aws
+      account: 184518171237
+      region: us-east-1
+    - name: pr
+      cloud: aws
+      account: 184518171237
+      region: us-east-1
+
+# Deploy the thing!
+---
+kind: aws-cloudformation
+spec:
+  name: config-check-extension
+  template: templates/resource.yml
+  additional_artifacts:
+    - deployment.zip
+  state: delete

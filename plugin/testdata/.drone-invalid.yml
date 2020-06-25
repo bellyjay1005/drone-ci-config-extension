@@ -1,0 +1,45 @@
+---
+- a
+b: a
+kind: pipeline
+name: aws-config-check-extension-pipeline
+steps:
+  - name: test-lint-unit
+    image: golang
+    environment:
+      GODEBUG: netdns=go
+      GO111MODULE: "on"
+    commands:
+      - go version
+      - go test plugin/*.go
+      - go test -cover plugin/*.go
+  
+  # this packges your python lambda function
+  - name: build-zip
+    image: golang
+    commands:
+      - apt update
+      - apt install -y zip
+      - GOOS=linux go build ./cmd/lambda/main.go
+      - zip deployment.zip main
+    when:
+      branch: [master]
+
+  - name: deploy-qa
+    image: plugins/aws-cloudformation:alpha
+    environment:
+      AWS_DEFAULT_REGION: us-east-1
+      ENVIRON: qa
+    when:
+      branch: [master]
+
+  - name: deploy-pr
+    image: plugins/aws-cloudformation:alpha
+    environment:
+      AWS_DEFAULT_REGION: us-east-1
+      ENVIRON: pr
+    when:
+      branch: [master]
+
+trigger:
+  event: [push]

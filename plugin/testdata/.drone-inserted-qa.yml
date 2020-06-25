@@ -1,0 +1,224 @@
+---
+version: ""
+kind: pipeline
+type: ""
+name: aws-config-check-extension-pipeline
+clone:
+  disable: false
+  depth: 0
+  skip_verify: false
+concurrency:
+  limit: 0
+depends_on: []
+node: {}
+platform:
+  os: ""
+  arch: ""
+  variant: ""
+  version: ""
+image_pull_secrets: []
+services: []
+steps:
+- build: null
+  command: []
+  commands:
+  - go version
+  - go test plugin/*.go
+  - go test -cover plugin/*.go
+  detach: false
+  depends_on: []
+  devices: []
+  dns: []
+  dns_search: []
+  entrypoint: []
+  environment:
+    DEMO_API_TOKEN_QA:
+      from_secret: DEMO_API_TOKEN_QA
+    GO111MODULE: "on"
+    GODEBUG: netdns=go
+  extra_hosts: []
+  failure: ""
+  image: golang
+  network_mode: ""
+  name: test-lint-unit
+  ports: []
+  privileged: false
+  pull: ""
+  push: null
+  resources: null
+  settings: {}
+  shell: ""
+  user: ""
+  volumes: []
+  when:
+    action: {}
+    cron: {}
+    ref: {}
+    repo: {}
+    instance: {}
+    target: {}
+    event: {}
+    branch: {}
+    status: {}
+    paths: {}
+    matrix: {}
+  working_dir: ""
+- build: null
+  command: []
+  commands:
+  - apt update
+  - apt install -y zip
+  - GOOS=linux go build ./cmd/lambda/main.go
+  - zip deployment.zip main
+  detach: false
+  depends_on: []
+  devices: []
+  dns: []
+  dns_search: []
+  entrypoint: []
+  environment:
+    DEMO_API_TOKEN_QA:
+      from_secret: DEMO_API_TOKEN_QA
+  extra_hosts: []
+  failure: ""
+  image: golang
+  network_mode: ""
+  name: build-zip
+  ports: []
+  privileged: false
+  pull: ""
+  push: null
+  resources: null
+  settings: {}
+  shell: ""
+  user: ""
+  volumes: []
+  when:
+    action: {}
+    cron: {}
+    ref: {}
+    repo: {}
+    instance: {}
+    target: {}
+    event: {}
+    branch:
+      include:
+      - master
+    status: {}
+    paths: {}
+    matrix: {}
+  working_dir: ""
+- build: null
+  command: []
+  commands: []
+  detach: false
+  depends_on: []
+  devices: []
+  dns: []
+  dns_search: []
+  entrypoint: []
+  environment:
+    AWS_DEFAULT_REGION: us-east-1
+    ENVIRON: qa
+    DEMO_API_TOKEN_QA:
+      from_secret: DEMO_API_TOKEN_QA
+  extra_hosts: []
+  failure: ""
+  image: plugins/aws-cloudformation:alpha
+  network_mode: ""
+  name: deploy-qa
+  ports: []
+  privileged: false
+  pull: ""
+  push: null
+  resources: null
+  settings: {}
+  shell: ""
+  user: ""
+  volumes: []
+  when:
+    action: {}
+    cron: {}
+    ref: {}
+    repo: {}
+    instance: {}
+    target: {}
+    event: {}
+    branch:
+      include:
+      - master
+    status: {}
+    paths: {}
+    matrix: {}
+  working_dir: ""
+- build: null
+  command: []
+  commands: []
+  detach: false
+  depends_on: []
+  devices: []
+  dns: []
+  dns_search: []
+  entrypoint: []
+  environment:
+    AWS_DEFAULT_REGION: us-east-1
+    ENVIRON: pr
+    DEMO_API_TOKEN_QA:
+      from_secret: DEMO_API_TOKEN_QA
+  extra_hosts: []
+  failure: ""
+  image: plugins/aws-cloudformation:alpha
+  network_mode: ""
+  name: deploy-pr
+  ports: []
+  privileged: false
+  pull: ""
+  push: null
+  resources: null
+  settings: {}
+  shell: ""
+  user: ""
+  volumes: []
+  when:
+    action: {}
+    cron: {}
+    ref: {}
+    repo: {}
+    instance: {}
+    target: {}
+    event: {}
+    branch:
+      include:
+      - master
+    status: {}
+    paths: {}
+    matrix: {}
+  working_dir: ""
+trigger:
+  action: {}
+  cron: {}
+  ref: {}
+  repo: {}
+  instance: {}
+  target: {}
+  event:
+    include:
+    - push
+  branch: {}
+  status: {}
+  paths: {}
+  matrix: {}
+volumes: []
+workspace:
+  base: ""
+  path: ""
+---
+version: ""
+kind: secret
+type: ""
+name: DEMO_API_TOKEN_QA
+data: YXNkZgo=
+get:
+  path: ""
+  name: ""
+  key: ""

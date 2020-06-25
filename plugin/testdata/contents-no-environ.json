@@ -1,0 +1,18 @@
+{
+  "type": "file",
+  "encoding": "base64",
+  "size": 552,
+  "name": ".strithon.yml",
+  "path": ".strithon.yml",
+  "content": "LS0tCmtpbmQ6IHNlcnZpY2UKbWV0YWRhdGE6CiAgc2VydmljZToKICAgIGlkOiAyMmExYjA4ZC1hMzMwLTQ0M2MtYWNmYi1mN2I1NWM2YTdhYzAKICAgIG5hbWU6IGF3cy1jb25maWctY2hlY2stZXh0ZW5zaW9uCiAgICB0ZWFtOiBzYXJhaGNvbm5vcgogICAgdW5pdDogY3JzbAogICAgb3duZXJzOgogICAgICAtIHNhcmFoY29ubm9yQHNreWRyaXZlM00ub25taWNyb3NvZnQuY29tCiAgICBtc190ZWFtOgogICAgICBuYW1lOiBCbGFja0JpcmQKICAgICAgY2hhbm5lbDogY3VzdG9kaWFuCiAgICBkZXNjcmlwdGlvbjogPgogICAgICBwbHVnaW4K",
+  "sha": "3d21ec53a331a6f037a91c368710b99387d012c1",
+  "url": "https://api.github.com/repos/octocat/hello-world/contents/.strithon.yml",
+  "git_url": "https://api.github.com/repos/octocat/hello-world/git/blobs/3d21ec53a331a6f037a91c368710b99387d012c1",
+  "html_url": "https://github.com/octocat/hello-world/blob/master/.strithon.yml",
+  "download_url": "https://raw.githubusercontent.com/octocat/hello-world/master/.strithon.yml",
+  "_links": {
+    "git": "https://api.github.com/repos/octocat/hello-world/git/blobs/3d21ec53a331a6f037a91c368710b99387d012c1",
+    "self": "https://api.github.com/repos/octocat/hello-world/contents/.strithon.yml",
+    "html": "https://github.com/octocat/hello-world/blob/master/.strithon.yml"
+  }
+}

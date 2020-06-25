@@ -1,0 +1,30 @@
+---
+kind: service
+metadata:
+  service:
+    id: 22a1b08d-a330-443c-acfb-f7b55c6a7ac0
+    name: aws-config-check-extension
+    team: sarahconnor
+    unit: crsl
+    owners:
+      - admin@strithon.com
+    ms_team:
+      name: BlackBird
+      channel: custodian
+    description: >
+      plugin
+  environments:
+    - name: tools
+      cloud: aws
+      account: "184518171237"
+      region: us-east-1
+
+# Deploy the thing!
+---
+kind: aws-cloudformation
+client_identifier: demo
+spec:
+  name: drone-metrics-collector
+  template: templates/resource.yml
+  additional_artifacts:
+    - deployment.zip
